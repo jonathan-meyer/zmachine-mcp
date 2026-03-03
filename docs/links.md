@@ -1,0 +1,1 @@
+* https://inform-fiction.org/zmachine/standards/index.html
