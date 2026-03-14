@@ -1,8 +1,9 @@
 import { randomUUID } from 'crypto';
+import { createRequire } from 'module';
 import { AsyncGlkOte, GameState, StatusLine } from './glkote-async.js';
+import { ZVM } from 'ifvms'
 
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any */
-const { ZVM } = require('ifvms');
+const require = createRequire(import.meta.url);
 
 /**
  * glkote-term's Glk API is an IIFE singleton — its internal `VM` and `GlkOte`
@@ -12,7 +13,7 @@ const { ZVM } = require('ifvms');
  */
 function createFreshGlk(): any {
   const resolved = require.resolve('glkote-term/src/glkapi.js');
-  delete (require as any).cache[resolved];
+  delete require.cache[resolved];
   return require('glkote-term/src/glkapi.js');
 }
 

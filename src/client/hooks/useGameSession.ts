@@ -78,22 +78,9 @@ export function useGameSession(sessionId: string, initialOutput = '') {
     // Echo the input
     setOutputLines(prev => [...prev, { id: lineIdCounter++, text: `> ${input}`, isEcho: true }]);
 
-    try {
-      const res = await fetch(`/api/sessions/${sessionId}/input`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }),
-      });
-      const data = await res.json() as {
-        output: string;
-        status_line: StatusLine;
-        state: GameState;
-      };
-      appendLines(data.output);
-      setStatusLine(data.status_line);
-      setState(data.state);
-    } catch (err) {
-      appendLines(`\n[Error: ${String(err)}]\n`);
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'input', input }));
     }
   }, [sessionId]);
 

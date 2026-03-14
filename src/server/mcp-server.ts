@@ -1,18 +1,40 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
-import { SessionManager } from './session-manager.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { Request, Response, Router } from "express";
+import { z } from "zod";
+import { SessionManager } from "./session-manager.js";
+
+const mcpServer = (sessionManager: SessionManager) => {
+  const router = Router();
+  // ─── MCP HTTP transport ────────────────────────────────────────────────────
+
+  const mcpServer = createMcpServer(sessionManager);
+  const mcpTransport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+  });
+
+  router.all("/mcp", async (req: Request, res: Response) => {
+    await mcpTransport.handleRequest(req, res);
+  });
+
+  mcpServer.connect(mcpTransport).catch((err) => {
+    console.error("MCP server connection error:", err);
+  });
+
+  return router;
+};
 
 export function createMcpServer(sessionManager: SessionManager): McpServer {
   const server = new McpServer({
-    name: 'zmachine-mcp',
-    version: '0.1.0',
+    name: "zmachine-mcp",
+    version: "0.1.0",
   });
 
   server.registerTool(
-    'list_games',
+    "list_games",
     {
-      title: 'List Available Games',
-      description: 'List all Z-Machine story files available to play.',
+      title: "List Available Games",
+      description: "List all Z-Machine story files available to play.",
       inputSchema: z.object({}),
     },
     async () => {
@@ -20,7 +42,7 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: JSON.stringify({ games }, null, 2),
           },
         ],
@@ -29,16 +51,16 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
   );
 
   server.registerTool(
-    'start_game',
+    "start_game",
     {
-      title: 'Start a Game',
+      title: "Start a Game",
       description:
-        'Start a new Z-Machine game session. Returns the opening text and a session_id ' +
-        'needed for subsequent send_input calls.',
+        "Start a new Z-Machine game session. Returns the opening text and a session_id " +
+        "needed for subsequent send_input calls.",
       inputSchema: z.object({
-        game_id: z.string().describe(
-          'The game id from list_games (e.g. "zork1")',
-        ),
+        game_id: z
+          .string()
+          .describe('The game id from list_games (e.g. "zork1")'),
       }),
     },
     async ({ game_id }) => {
@@ -47,7 +69,7 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: JSON.stringify(
                 {
                   session_id: session.id,
@@ -63,7 +85,7 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
         };
       } catch (err) {
         return {
-          content: [{ type: 'text', text: `Error: ${(err as Error).message}` }],
+          content: [{ type: "text", text: `Error: ${(err as Error).message}` }],
           isError: true,
         };
       }
@@ -71,29 +93,46 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
   );
 
   server.registerTool(
-    'send_input',
+    "send_input",
     {
-      title: 'Send Input to Game',
+      title: "Send Input to Game",
       description:
-        'Send a command to the active game session. Returns the game\'s response text. ' +
-        'Use empty string to get current output without sending input.',
+        "Send a command to the active game session. Returns the game's response text. " +
+        "Use empty string to get current output without sending input.",
       inputSchema: z.object({
-        session_id: z.string().describe('Session ID from start_game'),
-        input: z.string().describe('The command to send (e.g. "go north", "take lamp")'),
+        session_id: z.string().describe("Session ID from start_game"),
+        input: z
+          .string()
+          .describe('The command to send (e.g. "go north", "take lamp")'),
       }),
     },
     async ({ session_id, input }) => {
       const session = sessionManager.getSession(session_id);
       if (!session) {
         return {
-          content: [{ type: 'text', text: `Error: session ${session_id} not found` }],
+          content: [
+            { type: "text", text: `Error: session ${session_id} not found` },
+          ],
           isError: true,
         };
       }
 
-      if (session.state === 'ended') {
+      if (session.state === "ended") {
         return {
-          content: [{ type: 'text', text: JSON.stringify({ output: '(game has ended)', state: 'ended', status_line: session.statusLine }, null, 2) }],
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  output: "(game has ended)",
+                  state: "ended",
+                  status_line: session.statusLine,
+                },
+                null,
+                2,
+              ),
+            },
+          ],
         };
       }
 
@@ -101,7 +140,7 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: JSON.stringify(
               {
                 output: result.output,
@@ -118,26 +157,29 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
   );
 
   server.registerTool(
-    'get_session_info',
+    "get_session_info",
     {
-      title: 'Get Session Info',
-      description: 'Get the current status and state of an active game session.',
+      title: "Get Session Info",
+      description:
+        "Get the current status and state of an active game session.",
       inputSchema: z.object({
-        session_id: z.string().describe('Session ID from start_game'),
+        session_id: z.string().describe("Session ID from start_game"),
       }),
     },
     async ({ session_id }) => {
       const session = sessionManager.getSession(session_id);
       if (!session) {
         return {
-          content: [{ type: 'text', text: `Error: session ${session_id} not found` }],
+          content: [
+            { type: "text", text: `Error: session ${session_id} not found` },
+          ],
           isError: true,
         };
       }
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: JSON.stringify(
               {
                 session_id: session.id,
@@ -156,28 +198,32 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
   );
 
   server.registerTool(
-    'quit_game',
+    "quit_game",
     {
-      title: 'Quit Game',
-      description: 'End a game session and free its resources.',
+      title: "Quit Game",
+      description: "End a game session and free its resources.",
       inputSchema: z.object({
-        session_id: z.string().describe('Session ID from start_game'),
+        session_id: z.string().describe("Session ID from start_game"),
       }),
     },
     async ({ session_id }) => {
       const session = sessionManager.getSession(session_id);
       if (!session) {
         return {
-          content: [{ type: 'text', text: `Error: session ${session_id} not found` }],
+          content: [
+            { type: "text", text: `Error: session ${session_id} not found` },
+          ],
           isError: true,
         };
       }
       sessionManager.closeSession(session_id);
       return {
-        content: [{ type: 'text', text: JSON.stringify({ success: true }) }],
+        content: [{ type: "text", text: JSON.stringify({ success: true }) }],
       };
     },
   );
 
   return server;
 }
+
+export default mcpServer;

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import GameList from './components/GameList.js';
-import GameTerminal from './components/GameTerminal.js';
+import { useState } from "react";
+import GameList from "./components/GameList";
+import GameTerminal from "./components/GameTerminal";
 
 export interface ActiveSession {
   sessionId: string;
@@ -20,7 +20,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {session ? (
         <GameTerminal
           sessionId={session.sessionId}
