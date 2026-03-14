@@ -52,7 +52,6 @@ export function useGameSession(sessionId: string, initialOutput = '') {
         } else if (msg.type === 'output' && msg.text) {
           appendLines(msg.text);
         } else if (msg.type === 'turn_result') {
-          if (msg.output) appendLines(msg.output);
           if (msg.status_line) setStatusLine(msg.status_line);
           if (msg.state) setState(msg.state);
         }

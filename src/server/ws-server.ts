@@ -55,7 +55,6 @@ const wsServer = (
             ws.send(
               JSON.stringify({
                 type: "turn_result",
-                output: result.output,
                 status_line: result.statusLine,
                 state: result.state,
               }),
