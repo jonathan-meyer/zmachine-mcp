@@ -8,7 +8,9 @@
     "dev": "nodemon -w src/server -x tsx src/server/main.ts",
     "start": "NODE_ENV=production tsx src/server/main.ts",
     "start:stdio": "tsx src/server/main.ts --stdio",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
@@ -30,13 +32,16 @@
     "@types/cors": "^2.8.17",
     "@types/debug": "^4.1.13",
     "@types/express": "^5.0.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.13.10",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.2",
     "@types/ws": "^8.5.14",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
+    "jest": "^30.3.0",
     "nodemon": "^3.1.10",
+    "ts-jest": "^29.4.9",
     "vite": "^6.2.1"
   }
 }
