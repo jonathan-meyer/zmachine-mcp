@@ -19,6 +19,12 @@ npm run start:stdio
 
 # TypeScript type check
 npm run typecheck
+
+# Run tests
+npm test
+
+# Run tests with v8 coverage report
+npm run test:coverage
 ```
 
 Set the `STORIES` env var to point to your `.z3`/`.z5`/`.z8` story files (default: `../stories`).
@@ -42,7 +48,9 @@ src/
     game-session.ts      One game session — wraps GlkOte, provides sendInput()
     session-manager.ts   Loads story files, manages active sessions
     mcp-server.ts        MCP tool definitions (list_games, start_game, send_input, …)
-    http-server.ts       Express server + WebSocket + MCP HTTP transport
+    rest-server.ts       Express REST API routes
+    ws-server.ts         WebSocket server for real-time output streaming
+    mongo-store.ts       Optional MongoDB persistence (sessions + saves)
   client/
     main.tsx             React entry point
     App.tsx              Root: GameList or GameTerminal based on active session
@@ -52,6 +60,12 @@ src/
       StatusBar.tsx       Z-Machine status bar (location / score / turns)
     hooks/
       useGameSession.ts   WebSocket + REST integration hook
+  __tests__/
+    glkote-async.test.ts    AsyncGlkOte unit tests
+    session-manager.test.ts SessionManager unit tests
+    game-session.test.ts    GameSession integration tests
+    mcp-server.test.ts      MCP tool tests
+    rest-server.test.ts     REST API integration tests
 ```
 
 ### Z-Machine / ifvms integration (key design)
@@ -77,6 +91,18 @@ This means `session.sendInput(text)` is synchronous — it runs the VM and retur
 
 ### Story files
 Stories are loaded from `STORIES` env var (default: `../stories`). Supported extensions: `.z3` `.z4` `.z5` `.z7` `.z8` `.zblorb`
+
+### MongoDB Persistence (optional)
+
+Set `MONGODB_URI` env var (e.g. `mongodb://localhost:27017`) to persist sessions and save data to MongoDB (`zmachine` database, `sessions` + `saves` collections). Without it, sessions are in-memory only.
+
+### Testing
+
+Jest + ts-jest with ESM preset (`--experimental-vm-modules`), v8 coverage provider. Tests live in `src/__tests__/`. Coverage is collected from `src/server/**/*.ts` (excluding `main.ts`).
+
+### Logging
+
+Uses `debug` package with namespaces (`zmachine:main`, `zmachine:mcp`, `zmachine:sessions`, `zmachine:ws`). All output goes to stderr, which is safe for stdio MCP transport. Enable with `DEBUG=zmachine:*`.
 
 ## Z-Machine Spec docs
 - `docs/ZSpec11-latest.txt` — Z-Machine Specification v1.1

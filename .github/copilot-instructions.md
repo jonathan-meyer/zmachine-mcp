@@ -7,9 +7,12 @@ npm run dev          # Dev server (nodemon + Vite, :3000/:5173)
 npm run build        # Production Vite build
 npm start            # Production HTTP server
 npm run start:stdio  # MCP stdio transport (Claude Desktop)
+npm test             # Jest tests (--experimental-vm-modules)
+npm run test:coverage # Jest with v8 coverage report
+npm run typecheck    # TypeScript type check
 ```
 
-Set `STORIES` env var to the folder containing `.z3`/`.z5`/`.z8`/`.zblorb` story files (default: `/`).
+Set `STORIES` env var to the folder containing `.z3`/`.z5`/`.z8`/`.zblorb` story files (default: `../stories`).
 
 ## Architecture
 
@@ -19,7 +22,11 @@ MCP server + web UI for Z-Machine text adventures. Three interfaces to the same 
 - **REST** — `GET /api/games`, `POST /api/sessions`, `POST /api/sessions/:id/input`, `DELETE /api/sessions/:id`
 - **WebSocket** — `ws://localhost:3000/ws?session=<id>` for real-time output streaming
 
-Source layout: `src/server/` (Node/Express backend), `src/client/` (React frontend). See [CLAUDE.md](../CLAUDE.md) for detailed file-by-file layout.
+Source layout: `src/server/` (Node/Express backend), `src/client/` (React frontend), `src/__tests__/` (Jest test suites). See [CLAUDE.md](../CLAUDE.md) for detailed file-by-file layout.
+
+### MongoDB Persistence (optional)
+
+Set `MONGODB_URI` env var (e.g. `mongodb://localhost:27017`) to persist sessions and save data to MongoDB (`zmachine` database, `sessions` + `saves` collections). Without it, sessions are in-memory only. See `mongo-store.ts`.
 
 ## Critical Design: Glk Singleton Isolation
 
@@ -31,7 +38,8 @@ The VM runs **synchronously** inside `iface.accept()`. `sendInput()` blocks, run
 
 - **ESM throughout** — all relative imports use `.js` extensions (TypeScript + NodeNext)
 - **No linter or formatter configured** — match existing style (2-space indent, trailing commas, semicolons)
-- **No test framework** — no tests exist yet
+- **Jest + ts-jest** — ESM preset (`--experimental-vm-modules`), v8 coverage; tests in `src/__tests__/`
+- **Logging** — uses `debug` package with namespaces (`zmachine:main`, `zmachine:mcp`, `zmachine:sessions`, `zmachine:ws`); writes to stderr (safe for stdio transport)
 - **React client** — function components + hooks only, inline styles, no state library
 - **Error handling** — minimal; REST returns 400/404 JSON, MCP tools return `isError: true`
 - **Session IDs** — `crypto.randomUUID()`; game IDs derived from filenames (lowercase, hyphens)
