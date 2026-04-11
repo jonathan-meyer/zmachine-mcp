@@ -1,5 +1,5 @@
-import { jest } from '@jest/globals';
-import { AsyncGlkOte } from '../server/glkote-async';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { AsyncGlkOte } from '../server/glkote-async.js';
 
 describe('AsyncGlkOte', () => {
   let glkote: AsyncGlkOte;

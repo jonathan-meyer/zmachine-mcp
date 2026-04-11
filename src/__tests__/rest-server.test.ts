@@ -3,8 +3,8 @@ import fs from 'fs';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import restServer from '../server/rest-server';
-import { SessionManager } from '../server/session-manager';
+import restServer from '../server/rest-server.js';
+import { SessionManager } from '../server/session-manager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

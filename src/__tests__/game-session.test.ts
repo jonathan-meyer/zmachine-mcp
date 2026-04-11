@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GameSession } from '../server/game-session';
+import { GameSession } from '../server/game-session.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

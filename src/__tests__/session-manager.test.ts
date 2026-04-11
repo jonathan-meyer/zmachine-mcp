@@ -1,7 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { SessionManager } from '../server/session-manager';
+import { SessionManager } from '../server/session-manager.js';
 
 describe('SessionManager', () => {
   let tmpDir: string;

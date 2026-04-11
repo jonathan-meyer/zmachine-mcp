@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createMcpServer } from '../server/mcp-server';
-import { SessionManager } from '../server/session-manager';
+import { createMcpServer } from '../server/mcp-server.js';
+import { SessionManager } from '../server/session-manager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
