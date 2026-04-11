@@ -1,8 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import Debug from "debug";
 import { Request, Response, Router } from "express";
 import { z } from "zod";
 import { SessionManager } from "./session-manager.js";
+
+const debug = Debug("zmachine:mcp");
 
 const mcpServer = (sessionManager: SessionManager) => {
   const router = Router();
@@ -18,7 +21,7 @@ const mcpServer = (sessionManager: SessionManager) => {
   });
 
   mcpServer.connect(mcpTransport).catch((err) => {
-    console.error("MCP server connection error:", err);
+    debug("MCP server connection error: %O", err);
   });
 
   return router;

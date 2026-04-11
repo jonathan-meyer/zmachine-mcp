@@ -1,6 +1,9 @@
+import Debug from 'debug';
 import fs from 'fs';
 import path from 'path';
 import { GameSession } from './game-session.js';
+
+const debug = Debug('zmachine:sessions');
 
 export interface GameInfo {
   id: string;
@@ -81,6 +84,7 @@ export class SessionManager {
     const session = new GameSession(game.id, game.name);
     session.start(storyBuffer);
     this.sessions.set(session.id, session);
+    debug("started session %s for game %s", session.id, game.id);
     return session;
   }
 
@@ -93,6 +97,7 @@ export class SessionManager {
     if (session) {
       session.quit();
       this.sessions.delete(id);
+      debug("closed session %s", id);
     }
   }
 

@@ -1,6 +1,9 @@
+import Debug from "debug";
 import { Server } from "http";
 import { WebSocket, WebSocketServer } from "ws";
 import { SessionManager } from "./session-manager.js";
+
+const debug = Debug("zmachine:ws");
 
 // ─── WebSocket server ───────────────────────────────────────────────
 
@@ -25,6 +28,8 @@ const wsServer = (
       ws.close(1008, "session not found");
       return;
     }
+
+    debug("client connected to session %s", sessionId);
 
     // Send initial state
     ws.send(
@@ -68,6 +73,7 @@ const wsServer = (
 
     ws.on("close", () => {
       unsubscribe();
+      debug("client disconnected from session %s", sessionId);
     });
   });
 };
