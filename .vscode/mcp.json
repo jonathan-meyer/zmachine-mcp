@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "zmachine": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "src/server/main.ts", "--stdio"],
+      "env": { "DEBUG": "*" }
+    }
+  }
+}
