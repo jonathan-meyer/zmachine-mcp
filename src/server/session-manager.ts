@@ -2,6 +2,7 @@ import Debug from 'debug';
 import fs from 'fs';
 import path from 'path';
 import { GameSession } from './game-session.js';
+import type { MongoSessionStore } from './mongo-store.js';
 
 const debug = Debug('zmachine:sessions');
 
@@ -34,9 +35,11 @@ function nameFromFilename(filename: string): string {
 export class SessionManager {
   private storiesFolder: string;
   private sessions = new Map<string, GameSession>();
+  private store: MongoSessionStore | null;
 
-  constructor(storiesFolder: string) {
+  constructor(storiesFolder: string, store?: MongoSessionStore) {
     this.storiesFolder = storiesFolder;
+    this.store = store ?? null;
   }
 
   listGames(): GameInfo[] {
@@ -81,10 +84,18 @@ export class SessionManager {
     const storyPath = path.join(this.storiesFolder, game.filename);
     const storyBuffer = fs.readFileSync(storyPath);
 
-    const session = new GameSession(game.id, game.name);
+    const session = new GameSession(game.id, game.name, this.store ?? undefined);
     session.start(storyBuffer);
     this.sessions.set(session.id, session);
     debug("started session %s for game %s", session.id, game.id);
+    if (this.store) {
+      this.store.saveSession({
+        id: session.id,
+        gameId: session.gameId,
+        gameName: session.gameName,
+        state: session.state,
+      }).catch(() => {});
+    }
     return session;
   }
 
@@ -98,6 +109,9 @@ export class SessionManager {
       session.quit();
       this.sessions.delete(id);
       debug("closed session %s", id);
+      if (this.store) {
+        this.store.updateSessionState(id, 'ended').catch(() => {});
+      }
     }
   }
 

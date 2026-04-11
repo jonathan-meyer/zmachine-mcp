@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { createRequire } from 'module';
 import { AsyncGlkOte, GameState, StatusLine } from './glkote-async.js';
+import type { MongoSessionStore } from './mongo-store.js';
 import { ZVM } from 'ifvms'
 
 const require = createRequire(import.meta.url);
@@ -35,12 +36,14 @@ export class GameSession {
   private glkote: AsyncGlkOte;
   private outputListeners: Array<(chunk: OutputChunk) => void> = [];
   private _initialOutput = '';
+  private store: MongoSessionStore | null;
 
-  constructor(gameId: string, gameName: string) {
+  constructor(gameId: string, gameName: string, store?: MongoSessionStore) {
     this.id = randomUUID();
     this.gameId = gameId;
     this.gameName = gameName;
     this.glkote = new AsyncGlkOte();
+    this.store = store ?? null;
   }
 
   /**
@@ -145,22 +148,34 @@ export class GameSession {
   }
 
   private makeDialog(): any {
-    // Simple in-memory save/restore dialog
     const saves = new Map<string, Uint8Array>();
+    const store = this.store;
+    const sessionId = this.id;
     return {
       open(tosave: boolean, _usage: string, gameid: string, callback: (ref: any) => void) {
         const key = `${gameid}-save`;
         if (tosave) {
           callback({ filename: key, usage: 'data' });
+        } else if (store) {
+          store.hasSave(sessionId, key).then(has =>
+            callback(has ? { filename: key, usage: 'data' } : null),
+          );
         } else {
           callback(saves.has(key) ? { filename: key, usage: 'data' } : null);
         }
       },
       read(ref: any): Uint8Array | null {
+        if (store) {
+          // Glk Dialog.read is synchronous — use in-memory cache supplemented by async preload
+          return saves.get(ref.filename) ?? null;
+        }
         return saves.get(ref.filename) ?? null;
       },
       write(ref: any, buf: Uint8Array): void {
         saves.set(ref.filename, buf);
+        if (store) {
+          store.writeSave(sessionId, ref.filename, buf).catch(() => {});
+        }
       },
     };
   }
