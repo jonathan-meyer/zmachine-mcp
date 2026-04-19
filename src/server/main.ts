@@ -4,21 +4,21 @@ import "dotenv/config";
 import express from "express";
 import ViteExpress from "vite-express";
 import mcpServer, { createMcpServer } from "./mcp-server.js";
-import { MongoSessionStore } from "./mongo-store.js";
+import { RedisSessionStore } from "./redis-store.js";
 import restServer from "./rest-server.js";
 import { SessionManager } from "./session-manager.js";
 import wsServer from "./ws-server.js";
 
 const debug = Debug("zmachine:main");
 const STORIES_FOLDER = process.env.STORIES ?? "/";
-const MONGODB_URI = process.env.MONGODB_URI;
+const REDIS_URL = process.env.REDIS_URL;
 
-const store = MONGODB_URI
-  ? await MongoSessionStore.connect(MONGODB_URI)
+const store = REDIS_URL
+  ? await RedisSessionStore.connect(REDIS_URL)
   : undefined;
 
 if (store) {
-  debug("MongoDB session store enabled");
+  debug("Redis session store enabled");
 }
 
 if (process.argv.includes("--stdio")) {
@@ -41,9 +41,12 @@ if (process.argv.includes("--stdio")) {
   app.use(restServer(sessionManager));
   app.use(mcpServer(sessionManager));
 
-  const server = ViteExpress.listen(app, PORT, () =>
-    debug("listening on port %d", PORT),
-  );
+  const server = ViteExpress.listen(app, PORT, () => {
+    debug("listening on port %d", PORT);
+    if (process.env.NODE_ENV !== "production") {
+      debug("http://localhost:%d", PORT);
+    }
+  });
 
   wsServer(server, PORT, sessionManager);
 }

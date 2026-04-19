@@ -4,11 +4,15 @@
   "description": "MCP server + web UI for playing Z-Machine text adventure games",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "nodemon -w src/server -x tsx src/server/main.ts",
     "start": "NODE_ENV=production tsx src/server/main.ts",
     "start:stdio": "tsx src/server/main.ts --stdio",
     "build": "vite build",
+    "heroku-postbuild": "npm run build",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
   },
@@ -23,6 +27,7 @@
     "mongodb": "^7.1.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "redis": "^5.12.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
     "vite-express": "*",

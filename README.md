@@ -89,12 +89,12 @@ Connect to `ws://localhost:3000/ws?session=<id>` for real-time output streaming.
 |---------------------|---------|-------------|
 | `STORIES` | `../stories` | Path to folder containing Z-Machine story files |
 | `PORT` | `3000` | HTTP server port |
-| `MONGODB_URI` | — | MongoDB connection string for session persistence |
+| `REDIS_URL` | — | Redis connection URL for session persistence |
 | `DEBUG` | — | Set to `zmachine:*` to enable debug logging |
 
-### MongoDB Persistence (optional)
+### Redis Persistence (optional)
 
-Set `MONGODB_URI` (e.g. `mongodb://localhost:27017`) to persist sessions and save data to MongoDB. Without it, sessions are in-memory only and lost on restart.
+Set `REDIS_URL` (e.g. `redis://localhost:6379`) to persist sessions and save data to Redis. Without it, sessions are in-memory only and lost on restart.
 
 ## Development
 
@@ -117,7 +117,7 @@ src/
     session-manager.ts — Loads stories, manages sessions
     game-session.ts    — Single game session (wraps Z-Machine VM)
     glkote-async.ts    — Custom GlkOte for synchronous I/O capture
-    mongo-store.ts     — Optional MongoDB persistence
+    redis-store.ts     — Optional Redis persistence
   client/
     App.tsx            — React app (game list or terminal view)
     components/        — GameList, GameTerminal, StatusBar

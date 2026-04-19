@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { createRequire } from 'module';
 import { AsyncGlkOte, GameState, StatusLine } from './glkote-async.js';
-import type { MongoSessionStore } from './mongo-store.js';
+import type { RedisSessionStore } from './redis-store.js';
 import { ZVM } from 'ifvms'
 
 const require = createRequire(import.meta.url);
@@ -36,9 +36,9 @@ export class GameSession {
   private glkote: AsyncGlkOte;
   private outputListeners: Array<(chunk: OutputChunk) => void> = [];
   private _initialOutput = '';
-  private store: MongoSessionStore | null;
+  private store: RedisSessionStore | null;
 
-  constructor(gameId: string, gameName: string, store?: MongoSessionStore) {
+  constructor(gameId: string, gameName: string, store?: RedisSessionStore) {
     this.id = randomUUID();
     this.gameId = gameId;
     this.gameName = gameName;

@@ -24,9 +24,9 @@ MCP server + web UI for Z-Machine text adventures. Three interfaces to the same 
 
 Source layout: `src/server/` (Node/Express backend), `src/client/` (React frontend), `src/__tests__/` (Jest test suites). See [CLAUDE.md](../CLAUDE.md) for detailed file-by-file layout.
 
-### MongoDB Persistence (optional)
+### Redis Persistence (optional)
 
-Set `MONGODB_URI` env var (e.g. `mongodb://localhost:27017`) to persist sessions and save data to MongoDB (`zmachine` database, `sessions` + `saves` collections). Without it, sessions are in-memory only. See `mongo-store.ts`.
+Set `REDIS_URL` env var (e.g. `redis://localhost:6379`) to persist sessions and save data to Redis. Without it, sessions are in-memory only. See `redis-store.ts`.
 
 ## Critical Design: Glk Singleton Isolation
 

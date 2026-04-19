@@ -50,7 +50,7 @@ src/
     mcp-server.ts        MCP tool definitions (list_games, start_game, send_input, …)
     rest-server.ts       Express REST API routes
     ws-server.ts         WebSocket server for real-time output streaming
-    mongo-store.ts       Optional MongoDB persistence (sessions + saves)
+    redis-store.ts       Optional Redis persistence (sessions + saves)
   client/
     main.tsx             React entry point
     App.tsx              Root: GameList or GameTerminal based on active session
@@ -94,7 +94,7 @@ Stories are loaded from `STORIES` env var (default: `../stories`). Supported ext
 
 ### MongoDB Persistence (optional)
 
-Set `MONGODB_URI` env var (e.g. `mongodb://localhost:27017`) to persist sessions and save data to MongoDB (`zmachine` database, `sessions` + `saves` collections). Without it, sessions are in-memory only.
+Set `REDIS_URL` env var (e.g. `redis://localhost:6379`) to persist sessions and save data to Redis. Without it, sessions are in-memory only.
 
 ### Testing
 

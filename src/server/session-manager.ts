@@ -2,7 +2,7 @@ import Debug from 'debug';
 import fs from 'fs';
 import path from 'path';
 import { GameSession } from './game-session.js';
-import type { MongoSessionStore } from './mongo-store.js';
+import type { RedisSessionStore } from './redis-store.js';
 
 const debug = Debug('zmachine:sessions');
 
@@ -35,9 +35,9 @@ function nameFromFilename(filename: string): string {
 export class SessionManager {
   private storiesFolder: string;
   private sessions = new Map<string, GameSession>();
-  private store: MongoSessionStore | null;
+  private store: RedisSessionStore | null;
 
-  constructor(storiesFolder: string, store?: MongoSessionStore) {
+  constructor(storiesFolder: string, store?: RedisSessionStore) {
     this.storiesFolder = storiesFolder;
     this.store = store ?? null;
   }
