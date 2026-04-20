@@ -1,9 +1,33 @@
 import { Request, Response, Router } from "express";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { SessionManager } from "./session-manager.js";
+
+const pkg = JSON.parse(
+  readFileSync(join(import.meta.dirname, "../../package.json"), "utf-8"),
+);
+const startedAt = Date.now();
 
 const restServer = (sessionManager: SessionManager) => {
   const router = Router();
   // ─── REST API ──────────────────────────────────────────────────────────────
+
+  router.get("/api/status", (_req: Request, res: Response) => {
+    const sessions = sessionManager.getActiveSessions();
+    const gameCounts: Record<string, number> = {};
+    for (const s of sessions) {
+      gameCounts[s.gameName] = (gameCounts[s.gameName] || 0) + 1;
+    }
+    res.json({
+      version: pkg.version,
+      uptime_seconds: Math.floor((Date.now() - startedAt) / 1000),
+      started_at: new Date(startedAt).toISOString(),
+      sessions: {
+        active: sessions.length,
+        games: gameCounts,
+      },
+    });
+  });
 
   router.get("/api/games", (_req: Request, res: Response) => {
     res.json({ games: sessionManager.listGames() });
