@@ -1,7 +1,7 @@
 {
   "name": "zmachine-mcp",
-  "version": "0.1.0",
-  "description": "MCP server + web UI for playing Z-Machine text adventure games",
+  "version": "0.2.0",
+  "description": "MCP server for playing Z-Machine text adventure games",
   "private": true,
   "type": "module",
   "engines": {

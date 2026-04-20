@@ -16,13 +16,13 @@ Set `STORIES` env var to the folder containing `.z3`/`.z5`/`.z8`/`.zblorb` story
 
 ## Architecture
 
-MCP server + web UI for Z-Machine text adventures. Three interfaces to the same game engine:
+MCP server for Z-Machine text adventures with a status page web UI. Three interfaces to the same game engine:
 
 - **MCP** — stdio (`--stdio`) or HTTP (`POST /mcp`) via `@modelcontextprotocol/sdk`
 - **REST** — `GET /api/games`, `POST /api/sessions`, `POST /api/sessions/:id/input`, `DELETE /api/sessions/:id`
 - **WebSocket** — `ws://localhost:3000/ws?session=<id>` for real-time output streaming
 
-Source layout: `src/server/` (Node/Express backend), `src/client/` (React frontend), `src/__tests__/` (Jest test suites). See [CLAUDE.md](../CLAUDE.md) for detailed file-by-file layout.
+Source layout: `src/server/` (Node/Express backend), `src/client/` (vanilla TS status page), `src/__tests__/` (Jest test suites). See [CLAUDE.md](../CLAUDE.md) for detailed file-by-file layout.
 
 ### Redis Persistence (optional)
 
@@ -40,7 +40,7 @@ The VM runs **synchronously** inside `iface.accept()`. `sendInput()` blocks, run
 - **No linter or formatter configured** — match existing style (2-space indent, trailing commas, semicolons)
 - **Jest + ts-jest** — ESM preset (`--experimental-vm-modules`), v8 coverage; tests in `src/__tests__/`
 - **Logging** — uses `debug` package with namespaces (`zmachine:main`, `zmachine:mcp`, `zmachine:sessions`, `zmachine:ws`); writes to stderr (safe for stdio transport)
-- **React client** — function components + hooks only, inline styles, no state library
+- **Status page client** — vanilla TypeScript, no framework, polls `/api/status`
 - **Error handling** — minimal; REST returns 400/404 JSON, MCP tools return `isError: true`
 - **Session IDs** — `crypto.randomUUID()`; game IDs derived from filenames (lowercase, hyphens)
 

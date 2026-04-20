@@ -32,11 +32,12 @@ Set the `STORIES` env var to point to your `.z3`/`.z5`/`.z8` story files (defaul
 ## Architecture
 
 ### What this is
-An MCP server + web UI for playing Z-Machine text adventure games (Zork, etc.) with AI agents or humans.
+An MCP server for playing Z-Machine text adventure games (Zork, etc.) with AI agents. Includes a status page web UI.
 
 - **MCP transport**: stdio (Claude Desktop) or HTTP (`POST /mcp`)
-- **REST API**: `GET /api/games`, `POST /api/sessions`, `POST /api/sessions/:id/input`, `DELETE /api/sessions/:id`
+- **REST API**: `GET /api/status`, `GET /api/games`, `POST /api/sessions`, `POST /api/sessions/:id/input`, `DELETE /api/sessions/:id`
 - **WebSocket**: `ws://localhost:3000/ws?session=<id>` for real-time output streaming
+- **Status page**: Server info, active sessions, and MCP setup guide at `/`
 
 ### Source layout
 
@@ -52,14 +53,8 @@ src/
     ws-server.ts         WebSocket server for real-time output streaming
     redis-store.ts       Optional Redis persistence (sessions + saves)
   client/
-    main.tsx             React entry point
-    App.tsx              Root: GameList or GameTerminal based on active session
-    components/
-      GameList.tsx        Shows available games, starts sessions via POST /api/sessions
-      GameTerminal.tsx    Terminal UI: output pane + status bar + input line
-      StatusBar.tsx       Z-Machine status bar (location / score / turns)
-    hooks/
-      useGameSession.ts   WebSocket + REST integration hook
+    main.ts              Status page — polls /api/status, shows server info + MCP setup
+    index.css            Status page styles
   __tests__/
     glkote-async.test.ts    AsyncGlkOte unit tests
     session-manager.test.ts SessionManager unit tests
@@ -92,7 +87,7 @@ This means `session.sendInput(text)` is synchronous — it runs the VM and retur
 ### Story files
 Stories are loaded from `STORIES` env var (default: `../stories`). Supported extensions: `.z3` `.z4` `.z5` `.z7` `.z8` `.zblorb`
 
-### MongoDB Persistence (optional)
+### Redis Persistence (optional)
 
 Set `REDIS_URL` env var (e.g. `redis://localhost:6379`) to persist sessions and save data to Redis. Without it, sessions are in-memory only.
 

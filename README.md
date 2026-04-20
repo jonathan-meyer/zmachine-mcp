@@ -1,12 +1,14 @@
 # zmachine-mcp
 
-An [MCP](https://modelcontextprotocol.io/) server and web UI for playing Z-Machine text adventure games (Zork, Hitchhiker's Guide, etc.) with AI agents or humans.
+An [MCP](https://modelcontextprotocol.io/) server for playing Z-Machine text adventure games (Zork, Hitchhiker's Guide, etc.) with AI agents.
 
 Three interfaces expose the same game engine:
 
 - **MCP** — stdio or HTTP transport, so AI assistants like Claude can play text adventures
-- **Web UI** — React-based terminal interface with real-time WebSocket streaming
 - **REST API** — programmatic session management and input/output
+- **WebSocket** — real-time output streaming
+
+A built-in status page at `/` shows server health, active sessions, and MCP setup instructions.
 
 ## Quick Start
 
@@ -30,7 +32,7 @@ npm run dev
 npm run build && npm start
 ```
 
-Open http://localhost:3000 to play in the browser.
+Open http://localhost:3000 to see the server status page.
 
 ## MCP Integration
 
@@ -74,6 +76,7 @@ When running in HTTP mode, the MCP endpoint is available at `POST /mcp`.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| `GET` | `/api/status` | Server status, uptime, active sessions |
 | `GET` | `/api/games` | List available games |
 | `POST` | `/api/sessions` | Create a new game session |
 | `POST` | `/api/sessions/:id/input` | Send input to a session |
@@ -119,9 +122,8 @@ src/
     glkote-async.ts    — Custom GlkOte for synchronous I/O capture
     redis-store.ts     — Optional Redis persistence
   client/
-    App.tsx            — React app (game list or terminal view)
-    components/        — GameList, GameTerminal, StatusBar
-    hooks/             — WebSocket + REST integration hook
+    main.ts            — Status page (polls /api/status)
+    index.css          — Status page styles
   __tests__/           — Jest test suites
 ```
 
@@ -131,5 +133,5 @@ src/
 - **Z-Machine**: [ifvms](https://github.com/curiousdannii/ifvms.js) + [glkote-term](https://github.com/erkyrath/glkote-term)
 - **Server**: Express 5, WebSocket (ws)
 - **MCP**: [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)
-- **Client**: React 19, Vite
+- **Client**: Vanilla TypeScript, Vite
 - **Testing**: Jest + ts-jest

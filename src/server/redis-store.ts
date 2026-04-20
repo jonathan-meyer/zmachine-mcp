@@ -107,17 +107,15 @@ export class RedisSessionStore {
 
   async writeSave(sessionId: string, filename: string, data: Uint8Array): Promise<void> {
     const key = this.saveKey(sessionId, filename);
-    await this.client.set(key, Buffer.from(data));
+    await this.client.set(key, Buffer.from(data).toString('base64'));
     debug('wrote save %s for session %s', filename, sessionId);
   }
 
   async readSave(sessionId: string, filename: string): Promise<Uint8Array | null> {
-    const data = await this.client.get(
-      this.client.commandOptions({ returnBuffers: true }),
-      this.saveKey(sessionId, filename),
-    ) as Buffer | null;
+    const key = this.saveKey(sessionId, filename);
+    const data = await this.client.get(key);
     if (!data) return null;
-    return new Uint8Array(data);
+    return new Uint8Array(Buffer.from(data, 'base64'));
   }
 
   async hasSave(sessionId: string, filename: string): Promise<boolean> {
