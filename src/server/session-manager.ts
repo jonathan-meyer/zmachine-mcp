@@ -1,4 +1,5 @@
 import Debug from 'debug';
+import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
 import { GameSession } from './game-session.js';
@@ -32,12 +33,13 @@ function nameFromFilename(filename: string): string {
   return base.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-export class SessionManager {
+export class SessionManager extends EventEmitter {
   private storiesFolder: string;
   private sessions = new Map<string, GameSession>();
   private store: RedisSessionStore | null;
 
   constructor(storiesFolder: string, store?: RedisSessionStore) {
+    super();
     this.storiesFolder = storiesFolder;
     this.store = store ?? null;
   }
@@ -96,6 +98,7 @@ export class SessionManager {
         state: session.state,
       }).catch(() => {});
     }
+    this.emit('change');
     return session;
   }
 
@@ -112,6 +115,7 @@ export class SessionManager {
       if (this.store) {
         this.store.updateSessionState(id, 'ended').catch(() => {});
       }
+      this.emit('change');
     }
   }
 

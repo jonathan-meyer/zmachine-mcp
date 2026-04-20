@@ -13,9 +13,46 @@ const wsServer = (
   sessionManager: SessionManager,
 ) => {
   const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+  const statusClients = new Set<WebSocket>();
+
+  const buildSessionStatus = () => {
+    const sessions = sessionManager.getActiveSessions();
+    const gameCounts: Record<string, number> = {};
+    for (const s of sessions) {
+      gameCounts[s.gameName] = (gameCounts[s.gameName] || 0) + 1;
+    }
+    return JSON.stringify({
+      type: "status_update",
+      sessions: { active: sessions.length, games: gameCounts },
+    });
+  };
+
+  const broadcastStatus = () => {
+    const payload = buildSessionStatus();
+    for (const ws of statusClients) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(payload);
+      }
+    }
+  };
+
+  sessionManager.on("change", broadcastStatus);
 
   wss.on("connection", (ws: WebSocket, req) => {
     const url = new URL(req.url ?? "", `http://localhost:${port}`);
+
+    // Status page connection
+    if (url.searchParams.has("status")) {
+      debug("status client connected");
+      statusClients.add(ws);
+      ws.send(buildSessionStatus());
+      ws.on("close", () => {
+        statusClients.delete(ws);
+        debug("status client disconnected");
+      });
+      return;
+    }
+
     const sessionId = url.searchParams.get("session");
 
     if (!sessionId) {

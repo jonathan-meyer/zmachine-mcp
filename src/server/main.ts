@@ -13,12 +13,21 @@ const debug = Debug("zmachine:main");
 const STORIES_FOLDER = process.env.STORIES ?? "/";
 const REDIS_URL = process.env.REDIS_URL;
 
-const store = REDIS_URL
-  ? await RedisSessionStore.connect(REDIS_URL)
-  : undefined;
 
-if (store) {
-  debug("Redis session store enabled");
+let store: RedisSessionStore | undefined = undefined;
+if (REDIS_URL) {
+  try {
+    store = await RedisSessionStore.connect(REDIS_URL);
+    debug("Redis session store enabled");
+    // Attach global error handler to Redis client
+    // @ts-ignore
+    store.client.on('error', (err: any) => {
+      debug("Redis error: %O", err);
+    });
+  } catch (err) {
+    debug("Redis connection failed: %O", err);
+    store = undefined;
+  }
 }
 
 if (process.argv.includes("--stdio")) {

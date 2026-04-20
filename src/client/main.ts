@@ -45,7 +45,7 @@ function render(status: StatusResponse) {
       </div>
       <div class="stat-row">
         <span class="stat-label">Uptime</span>
-        <span class="stat-value">${formatUptime(status.uptime_seconds)}</span>
+        <span class="stat-value uptime-value">${formatUptime(status.uptime_seconds)}</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">Started</span>
@@ -87,16 +87,54 @@ function render(status: StatusResponse) {
 const root = document.getElementById("root")!;
 root.innerHTML = `<p class="loading">Loading…</p>`;
 
-async function fetchStatus() {
+let currentStatus: StatusResponse | null = null;
+
+function updateUptime() {
+  if (!currentStatus) return;
+  const uptimeSeconds = Math.floor(
+    (Date.now() - new Date(currentStatus.started_at).getTime()) / 1000,
+  );
+  const el = root.querySelector(".uptime-value");
+  if (el) el.textContent = formatUptime(uptimeSeconds);
+}
+
+function renderStatus() {
+  if (currentStatus) root.innerHTML = render(currentStatus);
+}
+
+function connectWebSocket() {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const ws = new WebSocket(`${protocol}//${window.location.host}/ws?status`);
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.type === "status_update" && currentStatus) {
+        currentStatus.sessions = msg.sessions;
+        renderStatus();
+      }
+    } catch {
+      // ignore malformed messages
+    }
+  };
+
+  ws.onclose = () => {
+    setTimeout(connectWebSocket, 3000);
+  };
+}
+
+async function init() {
   try {
     const res = await fetch("/api/status");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data: StatusResponse = await res.json();
-    root.innerHTML = render(data);
+    currentStatus = await res.json();
+    renderStatus();
   } catch (err) {
     root.innerHTML = `<h1>⚔️ Z-Machine MCP Server</h1><p class="error">Failed to load status: ${(err as Error).message}</p>`;
   }
+
+  connectWebSocket();
+  setInterval(updateUptime, 1000);
 }
 
-fetchStatus();
-setInterval(fetchStatus, 5000);
+init();
