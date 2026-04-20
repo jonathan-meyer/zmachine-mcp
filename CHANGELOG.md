@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0] - 2026-04-20
+
+### Added
+- `/api/status` endpoint returning version, uptime, and session statistics
+- Vanilla TypeScript status page with server health, active sessions, and MCP setup guide
+- Redis session store test suite with full mock coverage
+- WebSocket server test suite
+- MCP tool handler tests via Client SDK (`InMemoryTransport`)
+- REST API tests for `/api/status`
+
+### Changed
+- Replaced React game UI with lightweight vanilla TypeScript status page
+- Removed MongoDB store (`mongo-store.ts`) — fully replaced by Redis
+
+### Fixed
+- Test tsconfig `exclude` override so type-checking works in `src/__tests__/`
+
 ## 0.2.0 — 2026-04-20
 
 ### Changed
