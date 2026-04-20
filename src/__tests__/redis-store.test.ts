@@ -80,7 +80,7 @@ describe('RedisSessionStore', () => {
         gameName: 'Zork I',
         state: 'waiting_input',
       });
-      const fields = mockClient.hSet.mock.calls[0][1] as Record<string, string>;
+      const fields = (mockClient.hSet.mock.calls as any[][])[0][1] as Record<string, string>;
       expect(fields).not.toHaveProperty('createdAt');
     });
   });
