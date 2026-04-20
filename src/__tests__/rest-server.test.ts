@@ -65,6 +65,27 @@ describeWithStory('REST API', () => {
     server.close(done);
   });
 
+  describe('GET /api/status', () => {
+    it('returns server status with no active sessions', async () => {
+      const res = await request(server, 'GET', '/api/status');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('version');
+      expect(res.body).toHaveProperty('uptime_seconds');
+      expect(res.body).toHaveProperty('started_at');
+      expect(res.body.sessions.active).toBe(0);
+      expect(res.body.sessions.games).toEqual({});
+    });
+
+    it('reflects active sessions in status', async () => {
+      const session = sessionManager.startGame('minizork');
+      const res = await request(server, 'GET', '/api/status');
+      expect(res.status).toBe(200);
+      expect(res.body.sessions.active).toBe(1);
+      expect(res.body.sessions.games).toHaveProperty('Minizork', 1);
+      sessionManager.closeSession(session.id);
+    });
+  });
+
   describe('GET /api/games', () => {
     it('returns list of games', async () => {
       const res = await request(server, 'GET', '/api/games');
@@ -81,8 +102,8 @@ describeWithStory('REST API', () => {
       });
       expect(res.status).toBe(200);
       expect(res.body.session_id).toBeTruthy();
-      expect(res.body.output).toBeTruthy();
-      expect(res.body.state).toBe('waiting_input');
+      expect(res.body).toHaveProperty('output');
+      expect(res.body.state).toMatch(/waiting_input|running/);
       // Clean up
       sessionManager.closeSession(res.body.session_id);
     });

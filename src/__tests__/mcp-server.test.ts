@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createMcpServer } from '../server/mcp-server.js';
 import { SessionManager } from '../server/session-manager.js';
 
@@ -26,13 +28,6 @@ describeWithStory('MCP Server Tools', () => {
       sessionManager.closeSession(s.id);
     }
   });
-
-  // Helper to call an MCP tool directly
-  async function callTool(name: string, args: Record<string, unknown> = {}) {
-    // Access the registered tool handlers from the McpServer internals
-    // We test through the sessionManager instead for reliable testing
-    return { name, args };
-  }
 
   describe('list_games (via SessionManager)', () => {
     it('returns available games', () => {
@@ -92,5 +87,146 @@ describeWithStory('MCP Server Tools', () => {
     it('creates an MCP server instance', () => {
       expect(server).toBeDefined();
     });
+  });
+});
+
+describeWithStory('MCP Tool Handlers (via Client)', () => {
+  let sessionManager: SessionManager;
+  let client: Client;
+
+  beforeEach(async () => {
+    sessionManager = new SessionManager(STORIES_DIR);
+    const mcpServer = createMcpServer(sessionManager);
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await mcpServer.connect(serverTransport);
+    client = new Client({ name: 'test-client', version: '1.0.0' });
+    await client.connect(clientTransport);
+  });
+
+  afterEach(() => {
+    for (const s of sessionManager.getActiveSessions()) {
+      sessionManager.closeSession(s.id);
+    }
+  });
+
+  it('list_games returns games', async () => {
+    const result = await client.callTool({ name: 'list_games', arguments: {} });
+    const text = (result.content as any)[0].text;
+    const data = JSON.parse(text);
+    expect(data.games.length).toBeGreaterThan(0);
+    expect(data.games.find((g: any) => g.id === 'minizork')).toBeDefined();
+  });
+
+  it('start_game returns session with output', async () => {
+    const result = await client.callTool({
+      name: 'start_game',
+      arguments: { game_id: 'minizork' },
+    });
+    const text = (result.content as any)[0].text;
+    const data = JSON.parse(text);
+    expect(data.session_id).toBeTruthy();
+    expect(data).toHaveProperty('output');
+    expect(data.state).toMatch(/waiting_input|running/);
+  });
+
+  it('start_game returns error for unknown game', async () => {
+    const result = await client.callTool({
+      name: 'start_game',
+      arguments: { game_id: 'nonexistent' },
+    });
+    expect(result.isError).toBe(true);
+  });
+
+  it('send_input returns game response', async () => {
+    const startResult = await client.callTool({
+      name: 'start_game',
+      arguments: { game_id: 'minizork' },
+    });
+    const { session_id } = JSON.parse((startResult.content as any)[0].text);
+
+    const result = await client.callTool({
+      name: 'send_input',
+      arguments: { session_id, input: 'look' },
+    });
+    const data = JSON.parse((result.content as any)[0].text);
+    expect(data).toHaveProperty('output');
+    expect(data.state).toMatch(/waiting_input|running/);
+  });
+
+  it('send_input returns error for unknown session', async () => {
+    const result = await client.callTool({
+      name: 'send_input',
+      arguments: { session_id: 'nonexistent', input: 'look' },
+    });
+    expect(result.isError).toBe(true);
+  });
+
+  it('send_input returns ended message for ended session', async () => {
+    const startResult = await client.callTool({
+      name: 'start_game',
+      arguments: { game_id: 'minizork' },
+    });
+    const { session_id } = JSON.parse((startResult.content as any)[0].text);
+    sessionManager.closeSession(session_id);
+
+    // Re-add a mock ended session to test the "ended" branch
+    const session = sessionManager.startGame('minizork');
+    session.quit();
+    const result = await client.callTool({
+      name: 'send_input',
+      arguments: { session_id: session.id, input: 'look' },
+    });
+    const data = JSON.parse((result.content as any)[0].text);
+    expect(data.output).toBe('(game has ended)');
+    expect(data.state).toBe('ended');
+  });
+
+  it('get_session_info returns session details', async () => {
+    const startResult = await client.callTool({
+      name: 'start_game',
+      arguments: { game_id: 'minizork' },
+    });
+    const { session_id } = JSON.parse((startResult.content as any)[0].text);
+
+    const result = await client.callTool({
+      name: 'get_session_info',
+      arguments: { session_id },
+    });
+    const data = JSON.parse((result.content as any)[0].text);
+    expect(data.session_id).toBe(session_id);
+    expect(data.game_id).toBe('minizork');
+    expect(data.state).toMatch(/waiting_input|running/);
+  });
+
+  it('get_session_info returns error for unknown session', async () => {
+    const result = await client.callTool({
+      name: 'get_session_info',
+      arguments: { session_id: 'nonexistent' },
+    });
+    expect(result.isError).toBe(true);
+  });
+
+  it('quit_game ends session', async () => {
+    const startResult = await client.callTool({
+      name: 'start_game',
+      arguments: { game_id: 'minizork' },
+    });
+    const { session_id } = JSON.parse((startResult.content as any)[0].text);
+
+    const result = await client.callTool({
+      name: 'quit_game',
+      arguments: { session_id },
+    });
+    const data = JSON.parse((result.content as any)[0].text);
+    expect(data.success).toBe(true);
+    expect(sessionManager.getSession(session_id)).toBeUndefined();
+  });
+
+  it('quit_game returns error for unknown session', async () => {
+    const result = await client.callTool({
+      name: 'quit_game',
+      arguments: { session_id: 'nonexistent' },
+    });
+    expect(result.isError).toBe(true);
   });
 });
