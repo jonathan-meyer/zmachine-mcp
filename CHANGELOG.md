@@ -1,4 +1,19 @@
+
 # Changelog
+
+## [0.4.0] - 2026-04-20
+
+### Added
+- Status page now uses WebSocket for live updates (no polling)
+- SessionManager emits 'change' events for session lifecycle
+- WebSocket server broadcasts status updates to status page clients
+- Robust Redis error handling: server logs errors but does not crash on disconnect
+
+### Changed
+- Client uptime display is now local and updates every second
+
+### Fixed
+- All tests pass (104/104)
 
 ## [0.3.1] - 2026-04-20
 
