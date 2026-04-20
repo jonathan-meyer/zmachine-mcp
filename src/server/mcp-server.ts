@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import Debug from "debug";
@@ -11,17 +12,17 @@ const mcpServer = (sessionManager: SessionManager) => {
   const router = Router();
   // ─── MCP HTTP transport ────────────────────────────────────────────────────
 
-  const mcpServer = createMcpServer(sessionManager);
-  const mcpTransport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
+  const server = createMcpServer(sessionManager);
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
+  });
+
+  server.connect(transport).catch((err) => {
+    debug("MCP server connection error: %O", err);
   });
 
   router.all("/mcp", async (req: Request, res: Response) => {
-    await mcpTransport.handleRequest(req, res);
-  });
-
-  mcpServer.connect(mcpTransport).catch((err) => {
-    debug("MCP server connection error: %O", err);
+    await transport.handleRequest(req, res, req.body);
   });
 
   return router;
