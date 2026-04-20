@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.1] - 2026-04-20
+
+### Fixed
+- MCP server transport now uses `randomUUID` for session ID generation
+
 ## [0.3.0] - 2026-04-20
 
 ### Added
