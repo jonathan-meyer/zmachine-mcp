@@ -1,6 +1,11 @@
 
 # Changelog
 
+## [0.4.1] - 2026-04-23
+
+### Changed
+- Refactor: update AsyncGlkOte to use 'lines' instead of 'text' for grid window content
+
 ## [0.4.0] - 2026-04-20
 
 ### Added
