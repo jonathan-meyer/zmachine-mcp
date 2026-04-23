@@ -29,7 +29,6 @@ export class AsyncGlkOte {
   private iface: any = null;
   private windows = new Map<number, any>();
   private bufferWindow: any = null;
-  private gridWindow: any = null;
   private inputWindow: any = null;
   private inputType: 'line' | 'char' | null = null;
 
@@ -129,7 +128,6 @@ export class AsyncGlkOte {
     for (const win of windows) {
       this.windows.set(win.id, win);
       if (win.type === 'buffer') this.bufferWindow = win;
-      if (win.type === 'grid') this.gridWindow = win;
     }
   }
 
@@ -179,10 +177,11 @@ export class AsyncGlkOte {
   }
 
   private extractStatusBar(winContent: any): void {
-    // Grid window content for V3 games: first row is "  Location  Score: N  Turns: N  "
-    const lines: any[] = winContent.text ?? [];
+    // Grid window content uses 'lines' (not 'text', which is the buffer window property).
+    // Each entry is { line: <row>, content: [...] }; we want row 0 (the status bar).
+    const lines: any[] = winContent.lines ?? [];
     if (!lines.length) return;
-    const firstLine = lines[0];
+    const firstLine = lines.find((l: any) => l.line === 0) ?? lines[0];
     const content: any[] = firstLine.content ?? [];
 
     let rawText = '';

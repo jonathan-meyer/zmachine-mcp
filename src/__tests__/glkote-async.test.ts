@@ -1,4 +1,4 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { AsyncGlkOte } from '../server/glkote-async.js';
 
 describe('AsyncGlkOte', () => {
@@ -109,10 +109,8 @@ describe('AsyncGlkOte', () => {
         content: [
           {
             id: 2,
-            text: [
-              {
-                content: ['normal', 'West of House      Score: 10    Turns: 42'],
-              },
+            lines: [
+              { line: 0, content: ['normal', 'West of House      Score: 10    Turns: 42'] },
             ],
           },
         ],
@@ -133,10 +131,8 @@ describe('AsyncGlkOte', () => {
         content: [
           {
             id: 2,
-            text: [
-              {
-                content: ['normal', 'Living Room      Time: 10:30'],
-              },
+            lines: [
+              { line: 0, content: ['normal', 'Living Room      Time: 10:30'] },
             ],
           },
         ],
@@ -157,7 +153,7 @@ describe('AsyncGlkOte', () => {
         content: [
           {
             id: 2,
-            text: [{ content: ['normal', 'Some Location'] }],
+            lines: [{ line: 0, content: ['normal', 'Some Location'] }],
           },
         ],
       });
@@ -172,10 +168,8 @@ describe('AsyncGlkOte', () => {
         content: [
           {
             id: 2,
-            text: [
-              {
-                content: ['normal', 'Dark Room      Score: -5    Turns: 3'],
-              },
+            lines: [
+              { line: 0, content: ['normal', 'Dark Room      Score: -5    Turns: 3'] },
             ],
           },
         ],
