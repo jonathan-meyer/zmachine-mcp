@@ -3,8 +3,14 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import Debug from "debug";
 import { Request, Response, Router } from "express";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { z } from "zod";
 import { SessionManager } from "./session-manager.js";
+
+const pkg = JSON.parse(
+  readFileSync(join(import.meta.dirname, "../../package.json"), "utf-8"),
+);
 
 const debug = Debug("zmachine:mcp");
 
@@ -31,8 +37,27 @@ const mcpServer = (sessionManager: SessionManager) => {
 export function createMcpServer(sessionManager: SessionManager): McpServer {
   const server = new McpServer({
     name: "zmachine-mcp",
-    version: "0.1.0",
+    version: pkg.version,
   });
+
+  server.registerResource(
+    "rest-api-spec",
+    "openapi://zmachine-mcp",
+    {
+      title: "REST API OpenAPI Specification",
+      description:
+        "OpenAPI 3.0 spec describing all HTTP endpoints: /api/status, /api/games, " +
+        "/api/sessions, /api/sessions/:id, /api/sessions/:id/input. " +
+        "Use these endpoints for direct HTTP access without MCP.",
+      mimeType: "application/yaml",
+    },
+    async () => {
+      const spec = readFileSync(join(import.meta.dirname, "../../openapi.yml"), "utf-8");
+      return {
+        contents: [{ uri: "openapi://zmachine-mcp", text: spec, mimeType: "application/yaml" }],
+      };
+    },
+  );
 
   server.registerTool(
     "list_games",
@@ -48,6 +73,40 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
           {
             type: "text",
             text: JSON.stringify({ games }, null, 2),
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
+    "list_sessions",
+    {
+      title: "List Active Sessions",
+      description:
+        "List all currently active game sessions with their IDs, game, state, and status line. " +
+        "Call this before starting a new game to check for sessions already in progress.",
+      inputSchema: z.object({}),
+    },
+    async () => {
+      const sessions = sessionManager.getActiveSessions();
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                sessions: sessions.map((s) => ({
+                  session_id: s.id,
+                  game_id: s.gameId,
+                  game_name: s.gameName,
+                  state: s.state,
+                  status_line: s.statusLine,
+                })),
+              },
+              null,
+              2,
+            ),
           },
         ],
       };
@@ -101,8 +160,11 @@ export function createMcpServer(sessionManager: SessionManager): McpServer {
     {
       title: "Send Input to Game",
       description:
-        "Send a command to the active game session. Returns the game's response text. " +
-        "Use empty string to get current output without sending input.",
+        "Send a text command to an active game session and get the response. " +
+        "Returns output text, status_line (location, score/time, turns), and state. " +
+        'State is "waiting_input" when the game expects more input, "ended" when the game is over. ' +
+        'Typical commands: "look", "inventory", "go north", "take lamp", "examine mailbox". ' +
+        "Send an empty string to read current output without advancing the game.",
       inputSchema: z.object({
         session_id: z.string().describe("Session ID from start_game"),
         input: z

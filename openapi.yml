@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: Z-Machine MCP REST API
+  version: 0.4.1
+  description: REST API for managing Z-Machine text adventure game sessions.
+servers:
+  - url: http://localhost:3000
+components:
+  schemas:
+    StatusLine:
+      type: object
+      properties:
+        location:
+          type: string
+        score:
+          type: integer
+        turns:
+          type: integer
+        isTime:
+          type: boolean
+    SessionSummary:
+      type: object
+      properties:
+        session_id:
+          type: string
+        game_id:
+          type: string
+        game_name:
+          type: string
+        state:
+          type: string
+          enum: [running, waiting_input, ended]
+        status_line:
+          $ref: '#/components/schemas/StatusLine'
+paths:
+  /api/status:
+    get:
+      summary: Get server status and session summary
+      responses:
+        '200':
+          description: Server status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  uptime_seconds:
+                    type: integer
+                  started_at:
+                    type: string
+                  sessions:
+                    type: object
+                    properties:
+                      active:
+                        type: integer
+                      games:
+                        type: object
+                        additionalProperties:
+                          type: integer
+  /api/games:
+    get:
+      summary: List available games
+      responses:
+        '200':
+          description: List of games
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        filename:
+                          type: string
+                        version:
+                          type: integer
+  /api/sessions:
+    get:
+      summary: List all active sessions
+      responses:
+        '200':
+          description: List of active sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SessionSummary'
+    post:
+      summary: Create a new game session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [game_id]
+              properties:
+                game_id:
+                  type: string
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  game_name:
+                    type: string
+                  output:
+                    type: string
+                  state:
+                    type: string
+                    enum: [running, waiting_input, ended]
+                  status_line:
+                    $ref: '#/components/schemas/StatusLine'
+        '400':
+          description: Missing or invalid game_id
+        '404':
+          description: Game not found
+  /api/sessions/{id}:
+    get:
+      summary: Get session info
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionSummary'
+        '404':
+          description: Session not found
+    delete:
+      summary: End a session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session ended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '404':
+          description: Session not found
+  /api/sessions/{id}/input:
+    post:
+      summary: Send input to a session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [input]
+              properties:
+                input:
+                  type: string
+      responses:
+        '200':
+          description: Game response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  output:
+                    type: string
+                  state:
+                    type: string
+                    enum: [running, waiting_input, ended]
+                  status_line:
+                    $ref: '#/components/schemas/StatusLine'
+        '400':
+          description: Missing input field
+        '404':
+          description: Session not found

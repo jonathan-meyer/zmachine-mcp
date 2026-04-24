@@ -3,6 +3,31 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { SessionManager } from "./session-manager.js";
 
+const SWAGGER_UI_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Z-Machine MCP REST API</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>body { margin: 0; }</style>
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+  SwaggerUIBundle({
+    url: '/api/openapi.yml',
+    dom_id: '#swagger-ui',
+    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+    layout: 'BaseLayout',
+    deepLinking: true,
+    tryItOutEnabled: true,
+  });
+</script>
+</body>
+</html>`;
+
 const pkg = JSON.parse(
   readFileSync(join(import.meta.dirname, "../../package.json"), "utf-8"),
 );
@@ -11,6 +36,30 @@ const startedAt = Date.now();
 const restServer = (sessionManager: SessionManager) => {
   const router = Router();
   // ─── REST API ──────────────────────────────────────────────────────────────
+
+  router.get("/api/docs", (_req: Request, res: Response) => {
+    res.setHeader("Content-Type", "text/html");
+    res.send(SWAGGER_UI_HTML);
+  });
+
+  router.get("/api/openapi.yml", (_req: Request, res: Response) => {
+    const spec = readFileSync(join(import.meta.dirname, "../../openapi.yml"), "utf-8");
+    res.setHeader("Content-Type", "application/yaml");
+    res.send(spec);
+  });
+
+  router.get("/api/sessions", (_req: Request, res: Response) => {
+    const sessions = sessionManager.getActiveSessions();
+    res.json({
+      sessions: sessions.map(s => ({
+        session_id: s.id,
+        game_id: s.gameId,
+        game_name: s.gameName,
+        state: s.state,
+        status_line: s.statusLine,
+      }))
+    });
+  });
 
   router.get("/api/status", (_req: Request, res: Response) => {
     const sessions = sessionManager.getActiveSessions();

@@ -74,10 +74,13 @@ When running in HTTP mode, the MCP endpoint is available at `POST /mcp`.
 
 ## REST API
 
+Interactive documentation is available at [`/api/docs`](http://localhost:3000/api/docs) when the server is running. The raw OpenAPI spec is at [`/api/openapi.yml`](http://localhost:3000/api/openapi.yml).
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/status` | Server status, uptime, active sessions |
 | `GET` | `/api/games` | List available games |
+| `GET` | `/api/sessions` | List all active sessions with their IDs, game, state, and status line |
 | `POST` | `/api/sessions` | Create a new game session |
 | `POST` | `/api/sessions/:id/input` | Send input to a session |
 | `DELETE` | `/api/sessions/:id` | End a session |

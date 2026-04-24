@@ -86,6 +86,26 @@ describeWithStory('REST API', () => {
     });
   });
 
+  describe('GET /api/sessions', () => {
+    it('returns empty list when no sessions', async () => {
+      const res = await request(server, 'GET', '/api/sessions');
+      expect(res.status).toBe(200);
+      expect(res.body.sessions).toEqual([]);
+    });
+
+    it('returns active sessions with details', async () => {
+      const session = sessionManager.startGame('minizork');
+      const res = await request(server, 'GET', '/api/sessions');
+      expect(res.status).toBe(200);
+      expect(res.body.sessions).toHaveLength(1);
+      expect(res.body.sessions[0].session_id).toBe(session.id);
+      expect(res.body.sessions[0].game_id).toBe('minizork');
+      expect(res.body.sessions[0]).toHaveProperty('state');
+      expect(res.body.sessions[0]).toHaveProperty('status_line');
+      sessionManager.closeSession(session.id);
+    });
+  });
+
   describe('GET /api/games', () => {
     it('returns list of games', async () => {
       const res = await request(server, 'GET', '/api/games');
