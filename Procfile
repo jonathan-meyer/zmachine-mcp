@@ -1,1 +1,1 @@
-web: npm run start
+web: DEBUG='zmachine*' npm run start
