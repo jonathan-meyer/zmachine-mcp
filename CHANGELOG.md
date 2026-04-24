@@ -1,6 +1,11 @@
 
 # Changelog
 
+## [0.5.0] - 2026-04-24
+
+### Added
+- OpenAPI documentation and endpoints for active sessions
+
 ## [0.4.1] - 2026-04-23
 
 ### Changed
