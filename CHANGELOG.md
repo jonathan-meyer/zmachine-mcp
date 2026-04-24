@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.6.0] - 2026-04-24
+
+### Added
+- Morgan HTTP request logging piped through `debug` (`zmachine:http` namespace)
+- Startup message logs server version and port via `zmachine:main` debug namespace
+- ViteExpress verbosity silenced; mode and static file path logged through unified debug output
+- `DEBUG` env var added to Procfile for web process
+
 ## [0.5.0] - 2026-04-24
 
 ### Added
