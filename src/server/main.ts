@@ -17,6 +17,7 @@ const { version } = createRequire(import.meta.url)("../../package.json") as {
 const debug = Debug("zmachine:main");
 const httpLog = Debug("zmachine:http");
 const STORIES_FOLDER = process.env.STORIES ?? "/";
+
 const REDIS_URL = process.env.REDIS_URL;
 
 let store: RedisSessionStore | undefined = undefined;
@@ -68,4 +69,12 @@ if (process.argv.includes("--stdio")) {
   });
 
   wsServer(server, PORT, sessionManager);
+
+  const shutdown = () => {
+    debug("shutting down");
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 1000).unref();
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 }

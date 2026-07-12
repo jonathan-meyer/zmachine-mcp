@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.6.1] - 2026-07-12
+
+### Changed
+- Resolved npm dependency conflicts: updated vite to ^7.0.0 for compatibility with @vitejs/plugin-react@4.0.0
+- Downgraded typescript from ^7.0.2 to ^5.6.0 for ts-jest@29.4.11 peer dependency compliance
+- Updated various transitive dependencies (ws, ts-jest, concurrently, and others)
+
 ## [0.6.0] - 2026-04-24
 
 ### Added

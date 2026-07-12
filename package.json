@@ -1,6 +1,6 @@
 {
   "name": "zmachine-mcp",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "MCP server for playing Z-Machine text adventure games",
   "private": true,
   "type": "module",
@@ -30,7 +30,7 @@
     "react-dom": "^19.1.0",
     "redis": "^5.12.1",
     "tsx": "^4.19.3",
-    "typescript": "^7.0.2",
+    "typescript": "^5.6.0",
     "vite-express": "*",
     "ws": "^8.21.0",
     "zod": "^3.24.2"
@@ -45,11 +45,11 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.2",
     "@types/ws": "^8.5.14",
-    "@vitejs/plugin-react": "^6.0.3",
-    "concurrently": "^9.2.4",
+    "@vitejs/plugin-react": "^4.0.0",
+    "concurrently": "^9.0.0",
     "jest": "^30.3.0",
     "nodemon": "^3.1.10",
     "ts-jest": "^29.4.11",
-    "vite": "^8.1.4"
+    "vite": "^7.0.0"
   }
 }
