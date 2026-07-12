@@ -30,7 +30,7 @@
     "react-dom": "^19.1.0",
     "redis": "^5.12.1",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
+    "typescript": "^7.0.2",
     "vite-express": "*",
     "ws": "^8.21.0",
     "zod": "^3.24.2"
