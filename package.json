@@ -32,7 +32,7 @@
     "tsx": "^4.19.3",
     "typescript": "^5.6.0",
     "vite-express": "*",
-    "ws": "^8.21.0",
+    "ws": "^8.21.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
